@@ -1,0 +1,101 @@
+version: '3.5'
+services:
+  nacos1:
+    image: nacos/nacos-server:${NACOS_VERSION}
+    container_name: nacos1
+    hostname: nacos1
+    restart: always
+    ports:
+      # web 界面访问端口
+      - 8841:8848
+      # 程序使用 grpc 连接的端口
+      - 9841:9848
+    environment:
+      - MODE=cluster
+      - PREFER_HOST_MODE=hostname
+      - NACOS_SERVERS=nacos1:8848,nacos2:8848,nacos3:8848
+      - SPRING_DATASOURCE_PLATFORM=mysql
+      - MYSQL_SERVICE_HOST=192.168.136.128
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_DB_NAME=nacos
+      - MYSQL_SERVICE_USER=root
+      - MYSQL_SERVICE_PASSWORD=root
+      - MYSQL_DB_PARAM="characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&serverTimezone=Asia/Shanghai"
+    volumes:
+      - ./nacos1/logs:/home/nacos/logs
+    networks:
+      - nacos_net
+ 
+  nacos2:
+    image: nacos/nacos-server:${NACOS_VERSION}
+    container_name: nacos2
+    hostname: nacos2
+    restart: always
+    ports:
+      # web 界面访问端口
+      - 8842:8848
+      # 程序使用 grpc 连接的端口
+      - 9842:9848
+    environment:
+      - MODE=cluster
+      - PREFER_HOST_MODE=hostname
+      - NACOS_SERVERS=nacos1:8848,nacos2:8848,nacos3:8848
+      - SPRING_DATASOURCE_PLATFORM=mysql
+      - MYSQL_SERVICE_HOST=192.168.136.128
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_DB_NAME=nacos
+      - MYSQL_SERVICE_USER=root
+      - MYSQL_SERVICE_PASSWORD=root
+      - MYSQL_DB_PARAM="characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&serverTimezone=Asia/Shanghai"
+    volumes:
+      - /app/nacos-cluster/logs3:/home/nacos/logs
+    networks:
+      - nacos_net
+ 
+  nacos3:
+    image: nacos/nacos-server:${NACOS_VERSION}
+    container_name: nacos3
+    hostname: nacos3
+    restart: always
+    ports:
+      # web 界面访问端口
+      - 8843:8848
+      # 程序使用 grpc 连接的端口
+      - 9843:9848
+    environment:
+      - MODE=cluster
+      - PREFER_HOST_MODE=hostname
+      - NACOS_SERVERS=nacos1:8848,nacos2:8848,nacos3:8848
+      - SPRING_DATASOURCE_PLATFORM=mysql
+      - MYSQL_SERVICE_HOST=192.168.136.128
+      - MYSQL_SERVICE_PORT=3306
+      - MYSQL_SERVICE_DB_NAME=nacos
+      - MYSQL_SERVICE_USER=root
+      - MYSQL_SERVICE_PASSWORD=root
+      - MYSQL_DB_PARAM="characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&serverTimezone=Asia/Shanghai"
+    volumes:
+      - /app/nacos-cluster/logs3:/home/nacos/logs
+    networks:
+      - nacos_net
+ 
+  nginx:
+    image: nginx
+    container_name: nginx
+    privileged: true
+    restart: always
+    volumes:
+      - ./nginx_conf/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - 80:80
+      - 1080:1080
+    networks:
+      - nacos_net
+    depends_on:
+      - nacos1
+      - nacos2
+      - nacos3
+ 
+# 网络配置
+networks:
+  nacos_net:
+    driver: bridge

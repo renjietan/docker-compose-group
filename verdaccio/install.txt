@@ -1,0 +1,8 @@
+docker pull verdaccio/verdaccio
+docker run -it --rm --name verdaccio -p 4873:4873 verdaccio/verdaccio
+nrm add private http://localhost:4873
+npm adduser --registry http://localhost:4873
+新增完毕后默认会切换到那个用户，可以使用命令确认下是否切换到了新增的这个用户，不然下面的操作可能会出问题。
+npm who am i
+npm login --registry http://localhost:4873
+npm publish --registry http://localhost:4873

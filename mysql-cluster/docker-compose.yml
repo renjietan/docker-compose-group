@@ -1,0 +1,76 @@
+# docker-compose up -d --build
+version: '3.8'
+
+services:
+  master:
+    # 建议指定具体版本，例如 mysql:8.0
+    image: mysql:${MYSQL_VERSION}
+    container_name: master
+    # restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_DATABASE=nest-admin
+      - TZ="Asia/Shanghai"
+      - MYSQL_HOST=%
+      # - MYSQL_ROOT_HOST=%
+      # - MYSQL_USER=tanrenjie # 登录：mysql -u tanrenjie -p'123456' -h 127.0.0.1 nest-admin
+      # - MYSQL_PASSWORD=123456
+    command:
+      --default-authentication-plugin=mysql_native_password
+    ports:
+      - "3301:3306"
+    # volumes:
+      # - ./master/conf:/etc/mysql
+      # - ./localtime:/etc/localtime
+      # - ./master/data:/var/lib/mysql
+      # - ./master/log:/var/log/mysql
+    volumes:
+      - ./conf/master.cnf:/etc/mysql/my.cnf
+      - ./master/data:/var/lib/mysql
+      - ./master/files:/var/lib/mysql-files
+    networks:
+      - mysql_net
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 100000
+        hard: 200000
+
+  slave:
+    # 建议指定具体版本，例如 mysql:8.0
+    image: mysql:${MYSQL_VERSION}
+    container_name: slave
+    # restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+      - MYSQL_DATABASE=nest-admin
+      - TZ="Asia/Shanghai"
+      - MYSQL_HOST=%
+      # - MYSQL_ROOT_HOST=%
+      # - MYSQL_USER=tanrenjie # 登录：mysql -u tanrenjie -p'123456' -h 127.0.0.1 nest-admin
+      # - MYSQL_PASSWORD=123456
+    ports:
+      - "3302:3306"
+    command:
+      --default-authentication-plugin=mysql_native_password
+    # volumes:
+    #   - ./slave/conf:/etc/mysql
+    #   - ./localtime:/etc/localtime
+    #   - ./slave/data:/var/lib/mysql
+    #   - ./slave/log:/var/log/mysql
+    volumes:
+      - ./conf/slave.cnf:/etc/mysql/my.cnf
+      - ./slave/data:/var/lib/mysql
+      - ./slave/files:/var/lib/mysql-files
+    networks:
+      - mysql_net
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 100000
+        hard: 200000
+    depends_on:
+      - master
+networks:
+  mysql_net:
+    driver: bridge
