@@ -1,0 +1,13 @@
+mysql-cluster/master/
+mysql-cluster/slave/
+nacos_cluster/nacos1/
+nacos_cluster/nacos2/
+nacos_cluster/nacos3/
+nginx/html/
+nginx/conf/
+nginx/logs/
+redis/data/
+redis/logs/
+verdaccio/config/
+verdaccio/plugins/
+verdaccio/settings/
