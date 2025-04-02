@@ -1,101 +1,109 @@
-version: '3.5'
+version: "3"
 services:
-  nacos1:
-    image: nacos/nacos-server:${NACOS_VERSION}
-    container_name: nacos1
-    hostname: nacos1
-    restart: always
-    ports:
-      # web 界面访问端口
-      - 8841:8848
-      # 程序使用 grpc 连接的端口
-      - 9841:9848
+  mysql:
+    container_name: mysql
+    image: mysql:${MYSQL_VERSION}
     environment:
-      - MODE=cluster
-      - PREFER_HOST_MODE=hostname
-      - NACOS_SERVERS=nacos1:8848,nacos2:8848,nacos3:8848
-      - SPRING_DATASOURCE_PLATFORM=mysql
-      - MYSQL_SERVICE_HOST=192.168.136.128
-      - MYSQL_SERVICE_PORT=3306
-      - MYSQL_SERVICE_DB_NAME=nacos
-      - MYSQL_SERVICE_USER=root
-      - MYSQL_SERVICE_PASSWORD=root
-      - MYSQL_DB_PARAM="characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&serverTimezone=Asia/Shanghai"
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - TZ="Asia/Shanghai"
+      - MYSQL_HOST=${MYSQL_HOST}
+      # - MYSQL_ROOT_HOST=%
+      # - MYSQL_USER=tanrenjie # 登录：mysql -u tanrenjie -p'123456' -h 127.0.0.1 nest-admin
+      # - MYSQL_PASSWORD=123456
+    # 推荐SQL模式 sql_mode：STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION
+    command:
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --explicit_defaults_for_timestamp=true
+      --lower_case_table_names=1
+      --max_allowed_packet=128M;
+      --sql_mode=STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION
     volumes:
+      # mysql的数据文件
+      - ./mysql/data:/var/lib/mysql
+      # mysql配置文件
+      - ./mysql/config:/etc/mysql/conf.d
+      # # 初始化SQL脚本目录
+      - ./init_sql/:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+    healthcheck:  # 新增健康检查
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+  nacos1:
+    hostname: nacos1
+    container_name: nacos1
+    image: nacos/nacos-server:${NACOS_VERSION}
+    volumes:
+      # 需要添加mysql8的插件
+      - ./plugins/:/home/nacos/plugins/mysql/
+      # 把日志文件映射出来
       - ./nacos1/logs:/home/nacos/logs
-    networks:
-      - nacos_net
- 
+      # 把配置文件映射出来
+      - ./conf/nacos.custorm.properties:/home/nacos/init.d/custom.properties
+    
+    environment: # 设置环境变量,相当于docker run命令中的-e
+      - JVM_XMS=512m
+      - JVM_XMX=512m
+      - JVM_XMN=128m
+      #- MODE=standalone   #单机版
+    ports:
+      - "8848:8848"
+      - "9555:9555"
+    env_file:
+        # 集群配置文件
+      - ./.env
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy  # 等待数据库健康状态
   nacos2:
+    hostname: nacos2
     image: nacos/nacos-server:${NACOS_VERSION}
     container_name: nacos2
-    hostname: nacos2
-    restart: always
-    ports:
-      # web 界面访问端口
-      - 8842:8848
-      # 程序使用 grpc 连接的端口
-      - 9842:9848
-    environment:
-      - MODE=cluster
-      - PREFER_HOST_MODE=hostname
-      - NACOS_SERVERS=nacos1:8848,nacos2:8848,nacos3:8848
-      - SPRING_DATASOURCE_PLATFORM=mysql
-      - MYSQL_SERVICE_HOST=192.168.136.128
-      - MYSQL_SERVICE_PORT=3306
-      - MYSQL_SERVICE_DB_NAME=nacos
-      - MYSQL_SERVICE_USER=root
-      - MYSQL_SERVICE_PASSWORD=root
-      - MYSQL_DB_PARAM="characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&serverTimezone=Asia/Shanghai"
     volumes:
-      - /app/nacos-cluster/logs3:/home/nacos/logs
-    networks:
-      - nacos_net
- 
+      # 需要添加mysql8的插件
+      - ./plugins/:/home/nacos/plugins/mysql/
+      # 把日志文件映射出来
+      - ./nacos1/logs:/home/nacos/logs
+      # 把配置文件映射出来
+      - ./conf/nacos.custorm.properties:/home/nacos/init.d/custom.properties
+    environment:                        # 设置环境变量,相当于docker run命令中的-e
+      - JVM_XMS=512m
+      - JVM_XMX=512m
+      - JVM_XMN=128m
+    ports:
+      - "8849:8848"
+    env_file:
+      - ./.env
+    restart: always
+    depends_on:
+      mysql:
+        condition: service_healthy  # 等待数据库健康状态
   nacos3:
+    hostname: nacos3
     image: nacos/nacos-server:${NACOS_VERSION}
     container_name: nacos3
-    hostname: nacos3
-    restart: always
-    ports:
-      # web 界面访问端口
-      - 8843:8848
-      # 程序使用 grpc 连接的端口
-      - 9843:9848
-    environment:
-      - MODE=cluster
-      - PREFER_HOST_MODE=hostname
-      - NACOS_SERVERS=nacos1:8848,nacos2:8848,nacos3:8848
-      - SPRING_DATASOURCE_PLATFORM=mysql
-      - MYSQL_SERVICE_HOST=192.168.136.128
-      - MYSQL_SERVICE_PORT=3306
-      - MYSQL_SERVICE_DB_NAME=nacos
-      - MYSQL_SERVICE_USER=root
-      - MYSQL_SERVICE_PASSWORD=root
-      - MYSQL_DB_PARAM="characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&serverTimezone=Asia/Shanghai"
     volumes:
-      - /app/nacos-cluster/logs3:/home/nacos/logs
-    networks:
-      - nacos_net
- 
-  nginx:
-    image: nginx
-    container_name: nginx
-    privileged: true
-    restart: always
-    volumes:
-      - ./nginx_conf/nginx.conf:/etc/nginx/nginx.conf
+      # 需要添加mysql8的插件
+      - ./plugins/:/home/nacos/plugins/mysql/
+      # 把日志文件映射出来
+      - ./nacos1/logs:/home/nacos/logs
+      # 把配置文件映射出来
+      - ./conf/nacos.custorm.properties:/home/nacos/init.d/custom.properties
+    environment:                      # 设置环境变量,相当于docker run命令中的-e
+      - JVM_XMS=512m
+      - JVM_XMX=512m
+      - JVM_XMN=128m
     ports:
-      - 80:80
-      - 1080:1080
-    networks:
-      - nacos_net
+      - "8850:8848"
+    env_file:
+      - ./.env
+    restart: always
     depends_on:
-      - nacos1
-      - nacos2
-      - nacos3
- 
-# 网络配置
-networks:
-  nacos_net:
-    driver: bridge
+      mysql:
+        condition: service_healthy  # 等待数据库健康状态

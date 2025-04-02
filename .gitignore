@@ -3,6 +3,7 @@ mysql-cluster/slave/
 nacos_cluster/nacos1/
 nacos_cluster/nacos2/
 nacos_cluster/nacos3/
+nacos_cluster/mysql/
 nginx/html/
 nginx/conf/
 nginx/logs/
