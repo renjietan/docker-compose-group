@@ -9,7 +9,8 @@ services:
       - TZ="Asia/Shanghai"
       - MYSQL_HOST=${MYSQL_HOST}
       # - MYSQL_ROOT_HOST=%
-      # - MYSQL_USER=tanrenjie # 登录：mysql -u tanrenjie -p'123456' -h 127.0.0.1 nest-admin
+      # 登录：mysql -u tanrenjie -p'123456' -h 127.0.0.1 nest-admin
+      # - MYSQL_USER=nacos
       # - MYSQL_PASSWORD=123456
     # 推荐SQL模式 sql_mode：STRICT_TRANS_TABLES,NO_ENGINE_SUBSTITUTION
     command:
