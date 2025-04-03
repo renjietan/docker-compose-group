@@ -1,4 +1,4 @@
-version: "3.8"
+# version: "3.8"
 services:
   mysql:
     container_name: mysql
@@ -10,6 +10,7 @@ services:
       - ../init_sql:/docker-entrypoint-initdb.d
     ports:
       - "3306:3306"
+    restart: on-failure
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 5s
@@ -22,10 +23,57 @@ services:
       - ../env/nacos-standalone-mysql.env
     volumes:
       - ./logs/:/home/nacos/logs
+      # - ../plugins/:/home/nacos/plugins/mysql/
     ports:
       - "8848:8848"
       - "9848:9848"
     depends_on:
       mysql:
         condition: service_healthy
-    # restart: always
+    restart: on-failure
+
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:${PROMETHEUS_VERSION}
+    volumes:
+      - ../conf/prometheus-standalone.yaml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - nacos
+    restart: on-failure
+  # grafana 参考链接
+  # https://blog.csdn.net/xhk12345678/article/details/134668884
+  grafana:
+    image: grafana/grafana:latest
+    user: root
+    ports:
+      - "3000:3000"
+    environment:
+      PATH: "/usr/share/grafana/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+      GF_PATHS_CONFIG: /etc/grafana/grafana.ini
+      GF_PATHS_DATA: /var/lib/grafana
+      GF_PATHS_HOME: /usr/share/grafana
+      GF_PATHS_LOGS: /var/log/grafana
+      GF_PATHS_PLUGINS: /var/lib/grafana/plugins
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+      GF_RENDERING_SERVER_URL: http://renderer:8081/render
+      GF_RENDERING_CALLBACK_URL: http://grafana:3000/
+      GF_LOG_FILTERS: rendering:debug
+    # volumes:
+    #   - "/etc/grafana/grafana.ini:/etc/grafana/grafana.ini"
+    #   - "/var/lib/grafana:/var/lib/grafana"
+    #   - "/usr/share/grafana:/usr/share/grafana"
+    #   - "/var/log/grafana:/var/log/grafana"
+    #   - "/var/lib/grafana/plugins:/var/lib/grafana/plugins"
+    #   - "/etc/grafana/provisioning:/etc/grafana/provisioning"
+  renderer:
+    image: grafana/grafana-image-renderer:latest
+    ports:
+      - "8081:8081"
+    environment:
+      ENABLE METRICS: "true"
+      RENDERING DUMPIO: "true"
+      LOG LEVEL: debug
+      RENDERING ARGS: --no-sandbox,--disable-gpu
+    restart: on-failure
