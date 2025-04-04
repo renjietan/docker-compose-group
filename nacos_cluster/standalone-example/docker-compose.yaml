@@ -1,4 +1,5 @@
 # version: "3.8"
+
 services:
   mysql:
     container_name: mysql
@@ -44,12 +45,19 @@ services:
     restart: on-failure
   # grafana 参考链接
   # https://blog.csdn.net/xhk12345678/article/details/134668884
+  # docker run --name grafana-tmp -d -p 3000:3000 grafana/grafana
   grafana:
     image: grafana/grafana:latest
     user: root
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
+      # docker run --name grafana-tmp -d -p 3000:3000 grafana/grafana
+      # docker cp grafana-tmp:/etc/grafana/grafana.ini .\grafana\grafana.ini
+      # docker cp grafana-tmp:/var/lib/grafana  .\grafana\var_lib_grafana
+      # docker cp grafana-tmp:/usr/share/grafana  .\grafana\usr_share_grafana
+      # docker cp grafana-tmp:/var/log/grafana  .\grafana\var_log_grafana
+      # docker cp grafana-tmp:/etc/grafana/provisioning  .\grafana\etc_grafana_provisioning
       PATH: "/usr/share/grafana/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
       GF_PATHS_CONFIG: /etc/grafana/grafana.ini
       GF_PATHS_DATA: /var/lib/grafana
@@ -62,18 +70,17 @@ services:
       GF_LOG_FILTERS: rendering:debug
     volumes:
       - "./grafana/grafana.ini:/etc/grafana/grafana.ini"
-      - "./grafana/lib:/var/lib/grafana"
-      - "./grafana/share:/usr/share/grafana"
-      - "./grafana/log:/var/log/grafana"
-      - "./grafana/plugins:/var/lib/grafana/plugins"
-      - "./grafana/provisioning:/etc/grafana/provisioning"
+      - "./grafana/var_lib_grafana:/var/lib/grafana"
+      - "./grafana/usr_share_grafana:/usr/share/grafana"
+      - "./grafana/var_log_grafana:/var/log/grafana"
+      - "./grafana/var_lib_grafana/plugins:/var/lib/grafana/plugins"
+      - "./grafana/etc_grafana_provisioning:/etc/grafana/provisioning"
   renderer:
     image: grafana/grafana-image-renderer:latest
     ports:
-      - "8081:8081"
+      - '8081:8081'
     environment:
       ENABLE METRICS: "true"
       RENDERING DUMPIO: "true"
       LOG LEVEL: debug
       RENDERING ARGS: --no-sandbox,--disable-gpu
-    restart: on-failure
