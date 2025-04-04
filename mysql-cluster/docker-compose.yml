@@ -8,22 +8,17 @@ services:
     container_name: master
     # restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=123456
-      - MYSQL_DATABASE=nest-admin
+      - MYSQL_ROOT_PASSWORD=${ MASTER_MYSQL_ROOT_PASSWORD }
+      - MYSQL_DATABASE=${ MASTER_MYSQL_DATABASE }
       - TZ="Asia/Shanghai"
-      - MYSQL_HOST=%
+      - MYSQL_HOST=${ MASTER_MYSQL_DATABASE }
       # - MYSQL_ROOT_HOST=%
-      # - MYSQL_USER=tanrenjie # 登录：mysql -u tanrenjie -p'123456' -h 127.0.0.1 nest-admin
-      # - MYSQL_PASSWORD=123456
+      # - MYSQL_USER=${ MYSQL_USER } # 登录：mysql -u tanrenjie -p'123456' -h 127.0.0.1 nest-admin
+      # - MYSQL_PASSWORD=${ MYSQL_PASSWORD }
     command:
-      --default-authentication-plugin=mysql_native_password
+      --default-authentication-plugin=${ DEFAULT-AUTH-plugin }
     ports:
-      - "3301:3306"
-    # volumes:
-      # - ./master/conf:/etc/mysql
-      # - ./localtime:/etc/localtime
-      # - ./master/data:/var/lib/mysql
-      # - ./master/log:/var/log/mysql
+      - "${ MYSQL_PORT }:3306"
     volumes:
       - ./conf/master.cnf:/etc/mysql/my.cnf
       - ./master/data:/var/lib/mysql
@@ -38,26 +33,21 @@ services:
 
   slave:
     # 建议指定具体版本，例如 mysql:8.0
-    image: mysql:${MYSQL_VERSION}
+    image: mysql:${SLAVE1_MYSQL_VERSION}
     container_name: slave
     # restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=123456
-      - MYSQL_DATABASE=nest-admin
-      - TZ="Asia/Shanghai"
-      - MYSQL_HOST=%
+      - MYSQL_ROOT_PASSWORD=${ SLAVE1_MYSQL_ROOT_PASSWORD }
+      - MYSQL_DATABASE=${ SLAVE1_MYSQL_DATABASE }
+      - MYSQL_HOST=${ SLAVE1_MYSQL_HOST }
       # - MYSQL_ROOT_HOST=%
       # - MYSQL_USER=tanrenjie # 登录：mysql -u tanrenjie -p'123456' -h 127.0.0.1 nest-admin
       # - MYSQL_PASSWORD=123456
+      - TZ="Asia/Shanghai"
     ports:
-      - "3302:3306"
+      - "${ SLAVE1_MYSQL_PORT }:3306"
     command:
-      --default-authentication-plugin=mysql_native_password
-    # volumes:
-    #   - ./slave/conf:/etc/mysql
-    #   - ./localtime:/etc/localtime
-    #   - ./slave/data:/var/lib/mysql
-    #   - ./slave/log:/var/log/mysql
+      --default-authentication-plugin=${ DEFAULT-AUTH-plugin }
     volumes:
       - ./conf/slave.cnf:/etc/mysql/my.cnf
       - ./slave/data:/var/lib/mysql
