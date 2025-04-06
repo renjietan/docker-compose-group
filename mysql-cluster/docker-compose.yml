@@ -1,5 +1,5 @@
 # docker-compose up -d --build
-version: '3.8'
+version: "3.8"
 
 services:
   master:
@@ -8,17 +8,17 @@ services:
     container_name: master
     # restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=${ MASTER_MYSQL_ROOT_PASSWORD }
-      - MYSQL_DATABASE=${ MASTER_MYSQL_DATABASE }
+      - MYSQL_ROOT_PASSWORD=${MASTER_MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MASTER_MYSQL_DATABASE}
       - TZ="Asia/Shanghai"
-      - MYSQL_HOST=${ MASTER_MYSQL_DATABASE }
+      - MYSQL_HOST=${MASTER_MYSQL_DATABASE}
       # - MYSQL_ROOT_HOST=%
       # - MYSQL_USER=${ MYSQL_USER } # 登录：mysql -u tanrenjie -p'123456' -h 127.0.0.1 nest-admin
       # - MYSQL_PASSWORD=${ MYSQL_PASSWORD }
-    command:
-      --default-authentication-plugin=${ DEFAULT-AUTH-plugin }
+    command: 
+      --default-authentication-plugin=mysql_native_password
     ports:
-      - "${ MYSQL_PORT }:3306"
+      - "${MASTER_MYSQL_PORT}:3306"
     volumes:
       - ./conf/master.cnf:/etc/mysql/my.cnf
       - ./master/data:/var/lib/mysql
@@ -33,21 +33,21 @@ services:
 
   slave:
     # 建议指定具体版本，例如 mysql:8.0
-    image: mysql:${SLAVE1_MYSQL_VERSION}
+    image: mysql:${MYSQL_VERSION}
     container_name: slave
     # restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=${ SLAVE1_MYSQL_ROOT_PASSWORD }
-      - MYSQL_DATABASE=${ SLAVE1_MYSQL_DATABASE }
-      - MYSQL_HOST=${ SLAVE1_MYSQL_HOST }
+      - MYSQL_ROOT_PASSWORD=${SLAVE1_MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${SLAVE1_MYSQL_DATABASE}
+      - MYSQL_HOST=${SLAVE1_MYSQL_HOST}
       # - MYSQL_ROOT_HOST=%
       # - MYSQL_USER=tanrenjie # 登录：mysql -u tanrenjie -p'123456' -h 127.0.0.1 nest-admin
       # - MYSQL_PASSWORD=123456
       - TZ="Asia/Shanghai"
     ports:
-      - "${ SLAVE1_MYSQL_PORT }:3306"
-    command:
-      --default-authentication-plugin=${ DEFAULT-AUTH-plugin }
+      - "${SLAVE1_MYSQL_PORT}:3306"
+    command: 
+      --default-authentication-plugin=mysql_native_password
     volumes:
       - ./conf/slave.cnf:/etc/mysql/my.cnf
       - ./slave/data:/var/lib/mysql
