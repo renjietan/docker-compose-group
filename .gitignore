@@ -1,10 +1,7 @@
 mysql-cluster/master/
 mysql-cluster/slave/
 
-nacos_cluster/standalone-example/grafana/etc_grafana_provisioning
-nacos_cluster/standalone-example/grafana/usr_share_grafana
-nacos_cluster/standalone-example/grafana/var_lib_grafana
-nacos_cluster/standalone-example/grafana/var_log_grafana
+nacos_cluster/standalone-example/grafana/
 nacos_cluster/standalone-example/logs/
 nacos_cluster/standalone-example/mysql/
 
